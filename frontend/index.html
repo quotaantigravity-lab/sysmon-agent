@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysMon Agent — 24/7 System Monitoring</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo">
+      <span class="logo-icon">🛡️</span>
+      <div>
+        <h1>SysMon Agent</h1>
+        <span class="subtitle">24/7 System Monitoring</span>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-badge" id="ws-status">
+      <span class="pulse"></span>
+      <span>Live</span>
+    </div>
+    <button class="icon-btn" id="btn-settings" title="Settings">⚙️</button>
+    <button class="icon-btn" id="btn-theme" title="Toggle Theme">🌙</button>
+  </div>
+</header>
+
+<!-- Main Layout -->
+<div class="main-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <button class="nav-btn active" data-tab="dashboard">
+      <span class="nav-icon">📊</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" data-tab="logs">
+      <span class="nav-icon">📋</span>
+      <span>Log Ca Trực</span>
+    </button>
+    <button class="nav-btn" data-tab="alerts">
+      <span class="nav-icon">🚨</span>
+      <span>Cảnh Báo</span>
+    </button>
+    <button class="nav-btn" data-tab="chat">
+      <span class="nav-icon">💬</span>
+      <span>AI Chat</span>
+    </button>
+    <button class="nav-btn" data-tab="sops">
+      <span class="nav-icon">📚</span>
+      <span>SOP Docs</span>
+    </button>
+    <button class="nav-btn" data-tab="handover">
+      <span class="nav-icon">📝</span>
+      <span>Báo Cáo</span>
+    </button>
+  </nav>
+
+  <!-- Content Area -->
+  <main class="content">
+
+    <!-- DASHBOARD TAB -->
+    <section class="tab-panel active" id="tab-dashboard">
+      <div class="section-header">
+        <h2>Tổng Quan Hệ Thống</h2>
+        <button class="btn btn-sm" onclick="refreshDashboard()">🔄 Làm mới</button>
+      </div>
+
+      <!-- Metric Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card metric-critical">
+          <div class="metric-icon">🔴</div>
+          <div class="metric-body">
+            <span class="metric-value" id="m-critical">—</span>
+            <span class="metric-label">Critical</span>
+          </div>
+        </div>
+        <div class="metric-card metric-warning">
+          <div class="metric-icon">🟡</div>
+          <div class="metric-body">
+            <span class="metric-value" id="m-warning">—</span>
+            <span class="metric-label">Warning</span>
+          </div>
+        </div>
+        <div class="metric-card metric-ok">
+          <div class="metric-icon">🟢</div>
+          <div class="metric-body">
+            <span class="metric-value" id="m-ok">—</span>
+            <span class="metric-label">OK / Recovered</span>
+          </div>
+        </div>
+        <div class="metric-card metric-incident">
+          <div class="metric-icon">🔥</div>
+          <div class="metric-body">
+            <span class="metric-value" id="m-incidents">—</span>
+            <span class="metric-label">Sự cố mở</span>
+          </div>
+        </div>
+        <div class="metric-card metric-resolved">
+          <div class="metric-icon">✅</div>
+          <div class="metric-body">
+            <span class="metric-value" id="m-resolved">—</span>
+            <span class="metric-label">Khắc phục hôm nay</span>
+          </div>
+        </div>
+        <div class="metric-card metric-hosts">
+          <div class="metric-icon">🖥️</div>
+          <div class="metric-body">
+            <span class="metric-value" id="m-hosts">—</span>
+            <span class="metric-label">Hosts bị ảnh hưởng</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Escalation Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>⚡ Phát Hiện Leo Thang Sự Cố</h3>
+          <span class="badge badge-count" id="esc-count">0</span>
+        </div>
+        <div class="panel-body" id="escalation-list">
+          <div class="empty-state">Đang tải dữ liệu...</div>
+        </div>
+      </div>
+
+      <!-- Recent Alerts -->
+      <div class="panel">
+        <div class="panel-header"><h3>🔔 Cảnh Báo Gần Đây</h3></div>
+        <div class="panel-body" id="recent-alerts">
+          <div class="empty-state">Đang tải...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGS TAB -->
+    <section class="tab-panel" id="tab-logs">
+      <div class="section-header">
+        <h2>📋 Nhật Ký Ca Trực</h2>
+        <button class="btn btn-primary" onclick="openLogModal()">+ Thêm Log</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <select id="filter-type" onchange="renderLogs()">
+          <option value="">Tất cả loại</option>
+          <option value="incident">🔴 Sự cố</option>
+          <option value="maintenance">🔧 Bảo trì</option>
+          <option value="note">📝 Ghi chú</option>
+        </select>
+        <select id="filter-status" onchange="renderLogs()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="resolving">⏳ Đang xử lý</option>
+          <option value="resolved">✅ Đã khắc phục</option>
+          <option value="pending">⏸️ Chờ xử lý</option>
+        </select>
+        <select id="filter-severity" onchange="renderLogs()">
+          <option value="">Tất cả mức độ</option>
+          <option value="high">🔴 Cao</option>
+          <option value="medium">🟡 Trung bình</option>
+          <option value="low">🟢 Thấp</option>
+        </select>
+      </div>
+
+      <div id="logs-list" class="logs-list"></div>
+    </section>
+
+    <!-- ALERTS TAB -->
+    <section class="tab-panel" id="tab-alerts">
+      <div class="section-header">
+        <h2>🚨 Cảnh Báo Nagios</h2>
+        <button class="btn btn-sm" onclick="loadAlerts()">🔄 Làm mới</button>
+      </div>
+      <div class="filters">
+        <select id="alert-filter" onchange="renderAlerts()">
+          <option value="">Tất cả</option>
+          <option value="CRITICAL">🔴 Critical</option>
+          <option value="WARNING">🟡 Warning</option>
+          <option value="OK">🟢 OK</option>
+        </select>
+      </div>
+      <div id="alerts-list" class="alerts-list"></div>
+    </section>
+
+    <!-- CHAT TAB -->
+    <section class="tab-panel" id="tab-chat">
+      <div class="chat-container">
+        <div class="chat-header">
+          <h2>💬 SysMon AI Assistant</h2>
+          <span class="chat-model" id="chat-model">minimax-m2.5</span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg msg-ai">
+            <div class="msg-avatar">🛡️</div>
+            <div class="msg-content">
+              <p>Xin chào! Tôi là <strong>SysMon Agent</strong> — trợ lý giám sát hệ thống 24/7.</p>
+              <p>Tôi có thể giúp bạn:</p>
+              <ul>
+                <li>🔍 Kiểm tra cảnh báo & sự cố hiện tại</li>
+                <li>📖 Tra cứu quy trình SOP</li>
+                <li>📧 Soạn email thông báo sự cố</li>
+                <li>📊 Phân tích alert spike & leo thang</li>
+                <li>📝 Tạo báo cáo bàn giao ca</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="Nhập câu hỏi... (Enter để gửi)"
+                 onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="btn btn-primary" onclick="sendChat()">Gửi</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOPs TAB -->
+    <section class="tab-panel" id="tab-sops">
+      <div class="section-header">
+        <h2>📚 Tài Liệu SOP</h2>
+        <button class="btn btn-primary" onclick="openSopModal()">📤 Tải lên</button>
+      </div>
+      <div id="sops-list" class="sops-list"></div>
+    </section>
+
+    <!-- HANDOVER TAB -->
+    <section class="tab-panel" id="tab-handover">
+      <div class="section-header">
+        <h2>📝 Báo Cáo Bàn Giao Ca</h2>
+        <button class="btn btn-primary" onclick="generateHandover()">📄 Tạo Báo Cáo</button>
+      </div>
+      <div class="handover-form">
+        <input type="text" id="sender-name" placeholder="Tên người bàn giao">
+        <input type="text" id="receiver-name" placeholder="Tên người nhận bàn giao">
+      </div>
+      <div id="handover-preview" class="handover-preview">
+        <div class="empty-state">Nhấn "Tạo Báo Cáo" để xem trước</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⚙️ Cài Đặt Hệ Thống</h3>
+      <button class="modal-close" onclick="closeModal('modal-settings')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>GreenNode API Key</label>
+        <input type="password" id="cfg-api-key" placeholder="Nhập API Key...">
+      </div>
+      <div class="form-group">
+        <label>Model</label>
+        <input type="text" id="cfg-model" placeholder="minimax/minimax-m2.5">
+      </div>
+      <hr>
+      <h4>📧 IMAP — Đồng bộ Nagios Email</h4>
+      <div class="form-group">
+        <label><input type="checkbox" id="cfg-imap-enabled"> Bật IMAP</label>
+      </div>
+      <div class="form-group">
+        <label>IMAP Server</label>
+        <input type="text" id="cfg-imap-server" placeholder="imap.gmail.com">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" id="cfg-imap-user" placeholder="you@gmail.com">
+      </div>
+      <div class="form-group">
+        <label>App Password</label>
+        <input type="password" id="cfg-imap-pass" placeholder="App password...">
+      </div>
+      <div class="form-group">
+        <label>Filter</label>
+        <input type="text" id="cfg-imap-filter" placeholder='(SUBJECT "Nagios")'>
+      </div>
+      <hr>
+      <h4>⚡ Escalation Settings</h4>
+      <div class="form-group">
+        <label>Time Window (phút)</label>
+        <input type="number" id="cfg-esc-window" value="30">
+      </div>
+      <div class="form-group">
+        <label>Alert Threshold</label>
+        <input type="number" id="cfg-esc-threshold" value="3">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-settings')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveConfig()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Modal -->
+<div class="modal-overlay" id="modal-log">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="log-modal-title">+ Thêm Log Mới</h3>
+      <button class="modal-close" onclick="closeModal('modal-log')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="log-edit-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Loại</label>
+          <select id="log-type">
+            <option value="incident">🔴 Sự cố</option>
+            <option value="maintenance">🔧 Bảo trì</option>
+            <option value="note">📝 Ghi chú</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Mức độ</label>
+          <select id="log-severity">
+            <option value="high">🔴 Cao</option>
+            <option value="medium">🟡 Trung bình</option>
+            <option value="low">🟢 Thấp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Thành phần / Đối tác</label>
+        <input type="text" id="log-component" placeholder="VD: payment-gateway, BIDV, Redis...">
+      </div>
+      <div class="form-group">
+        <label>Trạng thái</label>
+        <select id="log-status">
+          <option value="resolving">⏳ Đang xử lý</option>
+          <option value="pending">⏸️ Chờ xử lý</option>
+          <option value="resolved">✅ Đã khắc phục</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Chi tiết</label>
+        <textarea id="log-content" rows="4" placeholder="Mô tả sự cố..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-log')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveLog()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOP Upload Modal -->
+<div class="modal-overlay" id="modal-sop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📤 Tải lên tài liệu SOP</h3>
+      <button class="modal-close" onclick="closeModal('modal-sop')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tiêu đề</label>
+        <input type="text" id="sop-title" placeholder="Tên quy trình...">
+      </div>
+      <div class="form-group">
+        <label>File (.docx, .xlsx, .pdf, .txt)</label>
+        <input type="file" id="sop-file" accept=".docx,.xlsx,.pdf,.txt">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-sop')">Hủy</button>
+      <button class="btn btn-primary" onclick="uploadSop()">📤 Tải lên</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
