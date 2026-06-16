@@ -215,18 +215,33 @@ def parse_nagios_email(subject: str, body: str, date_str: str) -> Dict[str, Any]
         state = "OK"
     elif "warning" in sl:
         state = "WARNING"
+    else:
+        state = "WARNING"
 
     m = re.search(r'service alert:\s*([^/]+)/([^\s\*\!]+)\s+is\s+([^\s\*\!]+)', subject, re.I)
     m2 = re.search(r'host alert:\s*([^\s\*\!]+)\s+is\s+([^\s\*\!]+)', subject, re.I)
     if m:
-        host, service = m.group(1).strip(), m.group(2).strip()
+        host = m.group(1).strip()
+        service = m.group(2).strip()
     elif m2:
-        host, service = m2.group(1).strip(), "PING"
+        host = m2.group(1).strip()
+        service = "PING"
+    else:
+        for line in body.split("\n"):
+            line_stripped = line.strip()
+            if line_stripped.lower().startswith("host:"):
+                host = line_stripped.split(":", 1)[1].strip()
+            elif line_stripped.lower().startswith("service:"):
+                service = line_stripped.split(":", 1)[1].strip()
 
     if "Additional Info:" in body:
         parts = body.split("Additional Info:", 1)
         if len(parts) > 1:
             message = parts[1].strip().split("\n")[0].strip()
+    elif "info:" in body.lower():
+        match_info = re.search(r'info:\s*(.*)', body, re.I)
+        if match_info:
+            message = match_info.group(1).strip().split("\n")[0].strip()
 
     try:
         from email.utils import parsedate_to_datetime
@@ -242,7 +257,7 @@ def parse_nagios_email(subject: str, body: str, date_str: str) -> Dict[str, Any]
 
 def get_mock_alerts() -> List[Dict[str, Any]]:
     now = datetime.datetime.now()
-    data = [
+    base_data = [
         ("CRITICAL", "k8s-prod-node-03", "Memory Usage", "CRITICAL - Memory usage is 96.5% (Threshold > 95.0%)", 5),
         ("CRITICAL", "redis-cache-shared", "CPU Load", "CRITICAL - CPU Load is 99.1% (Threshold > 90.0%)", 8),
         ("CRITICAL", "elastic-search-01", "JVM Heap Usage", "CRITICAL - JVM Heap usage is 94.2% (Threshold > 90.0%)", 9),
@@ -258,11 +273,20 @@ def get_mock_alerts() -> List[Dict[str, Any]]:
         ("WARNING", "payment-api-gateway", "HTTP Response Time", "WARNING - response time 1.8s (Threshold > 1.5s)", 35),
         ("OK", "auth-service-02", "CPU Load", "OK - CPU Load is 12.4% (recovered from CRITICAL)", 45),
     ]
+    
+    expanded_data = []
+    for i in range(8):  # 8 * 14 = 112 items, limit to 100
+        for s, h, svc, m, mi in base_data:
+            time_offset = mi + i * 50
+            expanded_data.append((s, h, svc, m, time_offset))
+            
+    expanded_data = expanded_data[:100]
+    
     return [
         {"state": s, "host": h, "service": svc, "message": m,
          "date": (now - datetime.timedelta(minutes=mi)).strftime("%Y-%m-%d %H:%M:%S"),
          "raw_subject": f"** {'RECOVERY' if s == 'OK' else 'PROBLEM'} Service Alert: {h}/{svc} is {s} **"}
-        for s, h, svc, m, mi in data
+        for s, h, svc, m, mi in expanded_data
     ]
 
 
@@ -327,11 +351,63 @@ class ChatRequest(BaseModel):
 
 # ─── App Lifecycle ─────────────────────────────────────────────────────────────
 
+async def email_polling_loop():
+    """Background task to periodically check IMAP for new alerts and broadcast them."""
+    seen_alerts = set()
+    
+    # Wait a bit on startup for the app to settle
+    await asyncio.sleep(5)
+    
+    # Initialize seen_alerts with current alerts
+    try:
+        initial_alerts = await asyncio.to_thread(get_nagios_alerts)
+        for a in initial_alerts:
+            key = (a.get("host"), a.get("service"), a.get("date"), a.get("state"))
+            seen_alerts.add(key)
+    except Exception as e:
+        print(f"Error initializing seen alerts: {e}")
+        
+    while True:
+        try:
+            config = read_config()
+            if config.get("imap_enabled") and config.get("imap_server") and config.get("imap_user") and config.get("imap_pass"):
+                current_alerts = await asyncio.to_thread(get_nagios_alerts)
+                new_alerts_found = []
+                
+                for a in current_alerts:
+                    key = (a.get("host"), a.get("service"), a.get("date"), a.get("state"))
+                    if key not in seen_alerts:
+                        seen_alerts.add(key)
+                        new_alerts_found.append(a)
+                
+                # Broadcast new alerts to all WebSocket clients
+                for a in new_alerts_found:
+                    await ws_manager.broadcast({
+                        "type": "alert",
+                        "data": a
+                    })
+                
+                # Keep seen_alerts size reasonable
+                if len(seen_alerts) > 500:
+                    seen_alerts = { (a.get("host"), a.get("service"), a.get("date"), a.get("state")) for a in current_alerts }
+        except Exception as e:
+            print(f"Error in email polling loop: {e}")
+            
+        config = read_config()
+        interval = config.get("health_check_interval", 60)
+        await asyncio.sleep(max(interval, 10))
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: nothing async needed yet
+    # Startup: start email polling task
+    polling_task = asyncio.create_task(email_polling_loop())
     yield
-    # Shutdown: cleanup
+    # Shutdown: cancel task
+    polling_task.cancel()
+    try:
+        await polling_task
+    except asyncio.CancelledError:
+        pass
 
 app = FastAPI(title="SysMon Agent — 24/7 System Monitoring", lifespan=lifespan)
 
@@ -527,7 +603,7 @@ def get_nagios_alerts():
     config = read_config()
     alerts = []
 
-    if config.get("imap_enabled") and config.get("imap_user") and config.get("imap_pass"):
+    if config.get("imap_enabled") and config.get("imap_server") and config.get("imap_user") and config.get("imap_pass"):
         import imaplib
         import email
         from email.header import decode_header
@@ -537,7 +613,7 @@ def get_nagios_alerts():
             mail.select("INBOX")
             status, messages = mail.search(None, config.get("imap_filter", '(SUBJECT "Nagios")'))
             if status == "OK":
-                ids = messages[0].split()[-10:]
+                ids = messages[0].split()[-100:]
                 ids.reverse()
                 for mid in ids:
                     res, data = mail.fetch(mid, "(RFC822)")

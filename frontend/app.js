@@ -14,6 +14,7 @@ let wsReconnectTimer = null;
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initNav();
+  initMetricCards();
   initWebSocket();
   loadConfig();
   refreshDashboard();
@@ -52,6 +53,91 @@ function initNav() {
       if (tab === 'sops') loadSops();
     });
   });
+}
+
+function initMetricCards() {
+  const criticalCard = document.querySelector('.metric-critical');
+  if (criticalCard) {
+    criticalCard.addEventListener('click', () => {
+      switchTab('alerts');
+      const filter = document.getElementById('alert-filter');
+      if (filter) {
+        filter.value = 'CRITICAL';
+        renderAlerts();
+      }
+    });
+  }
+
+  const warningCard = document.querySelector('.metric-warning');
+  if (warningCard) {
+    warningCard.addEventListener('click', () => {
+      switchTab('alerts');
+      const filter = document.getElementById('alert-filter');
+      if (filter) {
+        filter.value = 'WARNING';
+        renderAlerts();
+      }
+    });
+  }
+
+  const okCard = document.querySelector('.metric-ok');
+  if (okCard) {
+    okCard.addEventListener('click', () => {
+      switchTab('alerts');
+      const filter = document.getElementById('alert-filter');
+      if (filter) {
+        filter.value = 'OK';
+        renderAlerts();
+      }
+    });
+  }
+
+  const incidentCard = document.querySelector('.metric-incident');
+  if (incidentCard) {
+    incidentCard.addEventListener('click', () => {
+      switchTab('logs');
+      const filterType = document.getElementById('filter-type');
+      const filterStatus = document.getElementById('filter-status');
+      const filterSeverity = document.getElementById('filter-severity');
+      if (filterType) filterType.value = 'incident';
+      if (filterStatus) filterStatus.value = 'resolving';
+      if (filterSeverity) filterSeverity.value = '';
+      renderLogs();
+    });
+  }
+
+  const resolvedCard = document.querySelector('.metric-resolved');
+  if (resolvedCard) {
+    resolvedCard.addEventListener('click', () => {
+      switchTab('logs');
+      const filterType = document.getElementById('filter-type');
+      const filterStatus = document.getElementById('filter-status');
+      const filterSeverity = document.getElementById('filter-severity');
+      if (filterType) filterType.value = 'incident';
+      if (filterStatus) filterStatus.value = 'resolved';
+      if (filterSeverity) filterSeverity.value = '';
+      renderLogs();
+    });
+  }
+
+  const hostsCard = document.querySelector('.metric-hosts');
+  if (hostsCard) {
+    hostsCard.addEventListener('click', () => {
+      switchTab('alerts');
+      const filter = document.getElementById('alert-filter');
+      if (filter) {
+        filter.value = '';
+        renderAlerts();
+      }
+    });
+  }
+}
+
+function switchTab(tabId) {
+  const btn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+  if (btn) {
+    btn.click();
+  }
 }
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
@@ -115,6 +201,7 @@ function handleWSMessage(msg) {
       if (msg.type === 'alert') {
         toast(`🚨 Alert: ${msg.data?.host || 'Unknown'} — ${msg.data?.message || ''}`, 'warning');
         loadAlerts();
+        refreshDashboard();
       }
   }
 }
@@ -338,7 +425,11 @@ async function loadAlerts() {
 
 function renderAlerts() {
   const filter = document.getElementById('alert-filter').value;
-  const filtered = filter ? alerts.filter(a => a.state === filter) : alerts;
+  const limit = parseInt(document.getElementById('alert-limit')?.value || '10');
+  
+  let filtered = filter ? alerts.filter(a => a.state === filter) : alerts;
+  filtered = filtered.slice(0, limit);
+  
   const container = document.getElementById('alerts-list');
 
   if (!filtered.length) {
@@ -517,6 +608,10 @@ document.getElementById('btn-settings').addEventListener('click', () => {
   document.getElementById('modal-settings').classList.add('show');
 });
 
+document.getElementById('cfg-imap-enabled').addEventListener('change', (e) => {
+  document.getElementById('cfg-imap-fields').style.display = e.target.checked ? 'flex' : 'none';
+});
+
 async function loadConfig() {
   try {
     const config = await fetch('/api/config').then(r => r.json());
@@ -532,7 +627,9 @@ async function loadConfigFields() {
   document.getElementById('cfg-api-key').value = '';
   document.getElementById('cfg-api-key').placeholder = config.has_key ? '•••••••• (đã cấu hình)' : 'Nhập API Key...';
   document.getElementById('cfg-model').value = config.model_name || '';
-  document.getElementById('cfg-imap-enabled').checked = config.imap_enabled || false;
+  const imapEnabled = config.imap_enabled || false;
+  document.getElementById('cfg-imap-enabled').checked = imapEnabled;
+  document.getElementById('cfg-imap-fields').style.display = imapEnabled ? 'flex' : 'none';
   document.getElementById('cfg-imap-server').value = config.imap_server || '';
   document.getElementById('cfg-imap-user').value = config.imap_user || '';
   document.getElementById('cfg-imap-pass').value = '';

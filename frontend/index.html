@@ -182,6 +182,18 @@
           <option value="WARNING">🟡 Warning</option>
           <option value="OK">🟢 OK</option>
         </select>
+        <select id="alert-limit" onchange="renderAlerts()">
+          <option value="10">Hiển thị: 10</option>
+          <option value="20">Hiển thị: 20</option>
+          <option value="30">Hiển thị: 30</option>
+          <option value="40">Hiển thị: 40</option>
+          <option value="50">Hiển thị: 50</option>
+          <option value="60">Hiển thị: 60</option>
+          <option value="70">Hiển thị: 70</option>
+          <option value="80">Hiển thị: 80</option>
+          <option value="90">Hiển thị: 90</option>
+          <option value="100">Hiển thị: 100</option>
+        </select>
       </div>
       <div id="alerts-list" class="alerts-list"></div>
     </section>
@@ -264,21 +276,46 @@
       <div class="form-group">
         <label><input type="checkbox" id="cfg-imap-enabled"> Bật IMAP</label>
       </div>
-      <div class="form-group">
-        <label>IMAP Server</label>
-        <input type="text" id="cfg-imap-server" placeholder="imap.gmail.com">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="text" id="cfg-imap-user" placeholder="you@gmail.com">
-      </div>
-      <div class="form-group">
-        <label>App Password</label>
-        <input type="password" id="cfg-imap-pass" placeholder="App password...">
-      </div>
-      <div class="form-group">
-        <label>Filter</label>
-        <input type="text" id="cfg-imap-filter" placeholder='(SUBJECT "Nagios")'>
+      <div id="cfg-imap-fields" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <div class="form-group-header">
+            <label for="cfg-imap-server">IMAP Server Address</label>
+            <span class="suggestions-container">
+              Gợi ý: 
+              <span class="suggestion-link" onclick="document.getElementById('cfg-imap-server').value='imap.gmail.com'">Gmail</span> | 
+              <span class="suggestion-link" onclick="document.getElementById('cfg-imap-server').value='outlook.office365.com'">Outlook</span>
+            </span>
+          </div>
+          <input type="text" id="cfg-imap-server" placeholder="imap.gmail.com">
+        </div>
+        <div class="form-group">
+          <label for="cfg-imap-user">Email</label>
+          <input type="text" id="cfg-imap-user" placeholder="you@gmail.com">
+        </div>
+        <div class="form-group">
+          <div class="form-group-header">
+            <label for="cfg-imap-pass">Password / App Password</label>
+            <span class="suggestions-container">
+              Lấy App Pass: 
+              <a href="https://myaccount.google.com/apppasswords" target="_blank" class="suggestion-link">Gmail</a> | 
+              <a href="https://mysignins.microsoft.com/security-info" target="_blank" class="suggestion-link">Outlook</a>
+            </span>
+          </div>
+          <input type="password" id="cfg-imap-pass" placeholder="App password...">
+          <small style="color: var(--text-muted); font-size: 0.72rem; line-height: 1.3; margin-top: 4px; display: block;">Đối với Gmail và Outlook/O365, bạn cần sử dụng Mật khẩu ứng dụng (App Password) nếu tài khoản bật xác thực 2 bước (MFA).</small>
+        </div>
+        <div class="form-group">
+          <div class="form-group-header">
+            <label for="cfg-imap-filter">IMAP Search Filter (Bộ lọc thư)</label>
+            <span class="suggestions-container">
+              Gợi ý: 
+              <span class="suggestion-link" onclick="document.getElementById('cfg-imap-filter').value='(SUBJECT &quot;Nagios&quot;)'">Tiêu đề</span> | 
+              <span class="suggestion-link" onclick="document.getElementById('cfg-imap-filter').value='(FROM &quot;nagios@yourdomain.com&quot;)'">Người gửi</span>
+            </span>
+          </div>
+          <input type="text" id="cfg-imap-filter" placeholder='(SUBJECT "Nagios")'>
+          <small style="color: var(--text-muted); font-size: 0.72rem; line-height: 1.3; margin-top: 4px; display: block;">Cú pháp IMAP Search. Mặc định: <code>(SUBJECT "Nagios")</code>. Có thể đổi thành <code>(FROM "nagios@yourdomain.com")</code>.</small>
+        </div>
       </div>
       <hr>
       <h4>⚡ Escalation Settings</h4>

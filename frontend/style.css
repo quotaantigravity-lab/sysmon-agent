@@ -204,6 +204,7 @@ body {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
+  cursor: pointer;
 }
 .metric-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .metric-icon { font-size: 2rem; }
@@ -505,6 +506,32 @@ body {
   display: flex; justify-content: flex-end; gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid var(--border);
+}
+
+.form-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.form-group-header label {
+  margin-bottom: 0;
+}
+.suggestions-container {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  user-select: none;
+}
+.suggestion-link {
+  color: var(--ok);
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--ok);
+  transition: var(--transition);
+}
+.suggestion-link:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
 }
 
 .form-group { margin-bottom: 14px; }
