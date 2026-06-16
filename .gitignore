@@ -7,3 +7,4 @@ data/metrics.json
 temp_uploads/
 .env
 *.log
+.greennode.json
