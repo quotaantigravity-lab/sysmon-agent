@@ -374,6 +374,38 @@ body {
   color: var(--text-muted);
 }
 
+.chat-triggers {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 10px 20px;
+  background: var(--bg-glass);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.chat-triggers::-webkit-scrollbar {
+  display: none;
+}
+.btn-trigger {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-trigger:hover {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
 .chat-messages {
   flex: 1; overflow-y: auto; padding: 20px;
   display: flex; flex-direction: column; gap: 16px;

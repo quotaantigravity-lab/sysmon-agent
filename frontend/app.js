@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initNav();
   initMetricCards();
+  initChatTriggers();
   initWebSocket();
   loadConfig();
   refreshDashboard();
@@ -138,6 +139,19 @@ function switchTab(tabId) {
   if (btn) {
     btn.click();
   }
+}
+
+function initChatTriggers() {
+  document.querySelectorAll('.btn-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const query = btn.dataset.query;
+      const input = document.getElementById('chat-input');
+      if (input && query) {
+        input.value = query;
+        sendChat();
+      }
+    });
+  });
 }
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
