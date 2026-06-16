@@ -483,16 +483,74 @@ function renderAlerts() {
   }
 
   container.innerHTML = filtered.map(a => `
-    <div class="alert-item">
-      <div class="alert-state ${a.state}"></div>
-      <div class="alert-info">
-        <div class="alert-host">${a.host} / ${a.service}</div>
-        <div class="alert-msg">${a.message}</div>
+    <div class="alert-item clickable" onclick="toggleAlertHistory(event, this, '${a.host}', '${a.service}')">
+      <div class="alert-item-header">
+        <div class="alert-state ${a.state}"></div>
+        <div class="alert-info">
+          <div class="alert-host">${a.host} / ${a.service}</div>
+          <div class="alert-msg">${a.message}</div>
+        </div>
+        <div class="alert-time" style="display: flex; align-items: center; gap: 10px;">
+          <span>${a.date}</span>
+          <span class="history-toggle-icon">▼</span>
+        </div>
       </div>
-      <div class="alert-time">${a.date}</div>
+      <div class="alert-history" style="display: none;"></div>
     </div>
   `).join('');
 }
+
+function toggleAlertHistory(event, el, host, service) {
+  if (event.target.closest('.alert-history')) return;
+
+  const historyEl = el.querySelector('.alert-history');
+  const iconEl = el.querySelector('.history-toggle-icon');
+
+  if (historyEl.style.display === 'none' || !historyEl.style.display) {
+    historyEl.style.display = 'block';
+    iconEl.style.transform = 'rotate(180deg)';
+    
+    // Find history (all occurrences of host/service, excluding the latest one)
+    const matches = alerts.filter(a => a.host === host && a.service === service);
+    if (matches.length <= 1) {
+      historyEl.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; padding: 4px 0;">Không có cảnh báo lịch sử nào khác trong ca này.</div>';
+      return;
+    }
+
+    const historyItems = matches.slice(1);
+    const stateColors = {
+      CRITICAL: 'var(--critical)',
+      WARNING: 'var(--warning)',
+      OK: 'var(--ok)'
+    };
+
+    historyEl.innerHTML = `
+      <div style="font-weight: 600; font-size: 0.82rem; margin-bottom: 10px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+        <span>📜 Lịch sử cảnh báo của cặp Host/Service này (${historyItems.length}):</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; border-left: 2px dashed var(--border); padding-left: 14px; margin-left: 4px;">
+        ${historyItems.map(h => {
+          const color = stateColors[h.state] || 'var(--text-secondary)';
+          return `
+            <div style="display: flex; flex-direction: column; gap: 3px; font-size: 0.82rem;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="alert-state ${h.state}" style="width: 8px; height: 8px; box-shadow: none; display: inline-block;"></span>
+                <span style="font-weight: 700; text-transform: uppercase; color: ${color}; font-size: 0.78rem;">${h.state}</span>
+                <span style="color: var(--text-muted); font-size: 0.75rem;">🕐 ${h.date}</span>
+              </div>
+              <div style="color: var(--text-secondary); line-height: 1.4;">${h.message}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } else {
+    historyEl.style.display = 'none';
+    iconEl.style.transform = 'rotate(0deg)';
+  }
+}
+
+window.toggleAlertHistory = toggleAlertHistory;
 
 // ─── SOPs ─────────────────────────────────────────────────────────────────────
 
