@@ -718,11 +718,52 @@ def chat_with_agent(req: ChatRequest):
     # Build Nagios context
     try:
         nagios = get_nagios_alerts()
-        nagios_ctx = "\n".join(
+        # Find the latest state for each unique host/service
+        latest_alerts = {}
+        for a in nagios:
+            key = (a["host"], a["service"])
+            if key not in latest_alerts:
+                latest_alerts[key] = a
+        
+        # Only keep active non-OK alerts
+        active_alerts = [a for a in latest_alerts.values() if a["state"] != "OK"]
+        active_alerts_ctx = "\n".join(
             f"- [{a['state']}] {a['host']}/{a['service']}: {a['message']} ({a['date']})"
-            for a in nagios
+            for a in active_alerts
         )
-    except Exception:
+        
+        # Build compact history timeline (last 30 events)
+        recent_history = nagios[:30]
+        history_ctx = "\n".join(
+            f"- [{a['state']}] {a['host']}/{a['service']}: {a['message']} ({a['date']})"
+            for a in recent_history
+        )
+        
+        # Pre-analyze escalations
+        escalations = detect_escalations(
+            nagios,
+            window_min=config.get("alert_escalation_window", 30),
+            threshold=config.get("alert_escalation_threshold", 3)
+        )
+        
+        if escalations:
+            esc_ctx = "\n".join(
+                f"- Host {e['host']} có {e['alert_count']} alert, trạng thái cao nhất {e['max_severity']}." + (" (⚡ Đang có dấu hiệu leo thang!)" if e['escalating'] else "")
+                for e in escalations
+            )
+        else:
+            esc_ctx = "Không phát hiện leo thang sự cố nào."
+            
+        nagios_ctx = (
+            f"=== CÁC CẢNH BÁO CHƯA KHẮC PHỤC HIỆN TẠI ===\n"
+            f"{active_alerts_ctx if active_alerts_ctx else 'Không có cảnh báo hoạt động.'}\n\n"
+            f"=== LỊCH SỬ CẢNH BÁO GẦN ĐÂY ===\n"
+            f"{history_ctx if history_ctx else 'Không có lịch sử cảnh báo.'}\n\n"
+            f"=== BÁO CÁO PHÂN TÍCH LEO THANG (ESCALATION) ===\n"
+            f"{esc_ctx}"
+        )
+    except Exception as e:
+        print(f"Error building Nagios context: {e}")
         nagios_ctx = "Không thể lấy dữ liệu cảnh báo."
 
     # TF-IDF weighted SOP matching
