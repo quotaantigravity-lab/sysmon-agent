@@ -208,7 +208,7 @@
         <div class="chat-triggers">
           <button class="btn-trigger" data-query="Soạn giúp tôi email cảnh báo sự cố chuẩn cho ca trực hiện tại">✉️ Soạn Mail Sự cố</button>
           <button class="btn-trigger" data-query="Tóm tắt tình hình các lỗi đang xảy ra trong ca trực">📋 Tóm tắt ca trực</button>
-          <button class="btn-trigger" data-query="Quy trình xử lý khi ngân hàng BIDV bảo trì đột xuất là gì?">❓ Hướng dẫn BIDV</button>
+          <button class="btn-trigger" data-query="Quy trình bảo trì cổng thanh toán bank là gì?">❓ Hướng dẫn bank</button>
           <button class="btn-trigger" data-query="Hiện tại các alert Nagios nào chưa recovery?">🔔 Check Nagios Alert</button>
           <button class="btn-trigger" data-query="Phân tích xem có alert Nagios nào đang tăng nhanh bất thường hoặc leo thang mức độ nghiêm trọng không?">📈 Check Alert Spike</button>
         </div>
@@ -417,6 +417,22 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-sop')">Hủy</button>
       <button class="btn btn-primary" onclick="uploadSop()">📤 Tải lên</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOP View Modal -->
+<div class="modal-overlay" id="modal-view-sop">
+  <div class="modal" style="width: 650px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3 id="view-sop-title">📄 Tiêu đề tài liệu</h3>
+      <button class="modal-close" onclick="closeModal('modal-view-sop')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="view-sop-content" style="white-space: pre-wrap; line-height: 1.6; font-size: 0.9rem; max-height: 60vh; overflow-y: auto; background: var(--bg-input); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-view-sop')">Đóng</button>
     </div>
   </div>
 </div>

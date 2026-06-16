@@ -4,6 +4,7 @@
 
 let logs = [];
 let alerts = [];
+let sops = [];
 let escalations = [];
 let chatHistory = [];
 let ws = null;
@@ -556,25 +557,35 @@ window.toggleAlertHistory = toggleAlertHistory;
 
 async function loadSops() {
   try {
-    const sops = await fetch('/api/sops').then(r => r.json());
+    sops = await fetch('/api/sops').then(r => r.json());
     const container = document.getElementById('sops-list');
     if (!sops.length) {
       container.innerHTML = '<div class="empty-state">Chưa có tài liệu nào. Nhấn "Tải lên" để thêm.</div>';
       return;
     }
     container.innerHTML = sops.map(s => `
-      <div class="sop-item">
+      <div class="sop-item" onclick="viewSop('${s.id}')" style="cursor: pointer;">
         <div class="sop-info">
           <div class="sop-title">📄 ${s.title}</div>
           <div class="sop-file">${s.filename} · ${Math.round(s.content.length / 1024)}KB text</div>
         </div>
-        <button class="btn btn-sm btn-danger" onclick="deleteSop('${s.id}')">🗑️</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteSop('${s.id}')">🗑️</button>
       </div>
     `).join('');
   } catch (e) {
     console.error('Load SOPs error:', e);
   }
 }
+
+function viewSop(id) {
+  const doc = sops.find(s => s.id === id);
+  if (!doc) return;
+  document.getElementById('view-sop-title').textContent = `📄 ${doc.title}`;
+  document.getElementById('view-sop-content').textContent = doc.content;
+  document.getElementById('modal-view-sop').classList.add('show');
+}
+
+window.viewSop = viewSop;
 
 function openSopModal() {
   document.getElementById('sop-title').value = '';
