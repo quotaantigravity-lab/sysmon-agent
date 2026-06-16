@@ -240,7 +240,10 @@
     <section class="tab-panel" id="tab-sops">
       <div class="section-header">
         <h2>📚 Tài Liệu SOP</h2>
-        <button class="btn btn-primary" onclick="openSopModal()">📤 Tải lên</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary" onclick="openSopManualModal()">➕ Thêm thủ công</button>
+          <button class="btn btn-primary" onclick="openSopModal()">📤 Tải lên</button>
+        </div>
       </div>
       <div id="sops-list" class="sops-list"></div>
     </section>
@@ -433,6 +436,30 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="closeModal('modal-view-sop')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOP Manual Create Modal -->
+<div class="modal-overlay" id="modal-sop-manual">
+  <div class="modal" style="width: 550px; max-width: 95vw;">
+    <div class="modal-header">
+      <h3>➕ Thêm Ghi Chú / Quy Trình</h3>
+      <button class="modal-close" onclick="closeModal('modal-sop-manual')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tiêu đề</label>
+        <input type="text" id="sop-manual-title" placeholder="Tên ghi chú / quy trình...">
+      </div>
+      <div class="form-group">
+        <label>Nội dung ghi chú</label>
+        <textarea id="sop-manual-content" rows="6" placeholder="Nhập nội dung quy trình hoặc hướng dẫn nhanh..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-sop-manual')">Hủy</button>
+      <button class="btn btn-primary" onclick="saveSopManual()">💾 Lưu</button>
     </div>
   </div>
 </div>

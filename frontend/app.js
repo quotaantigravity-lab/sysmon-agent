@@ -628,6 +628,42 @@ async function deleteSop(id) {
   }
 }
 
+function openSopManualModal() {
+  document.getElementById('sop-manual-title').value = '';
+  document.getElementById('sop-manual-content').value = '';
+  document.getElementById('modal-sop-manual').classList.add('show');
+}
+
+async function saveSopManual() {
+  const title = document.getElementById('sop-manual-title').value.trim();
+  const content = document.getElementById('sop-manual-content').value.trim();
+
+  if (!title || !content) {
+    toast('Vui lòng điền đầy đủ tiêu đề và nội dung', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/sops', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content })
+    });
+    if (res.ok) {
+      closeModal('modal-sop-manual');
+      toast('Đã lưu ghi chú thành công!', 'success');
+      loadSops();
+    } else {
+      toast('Lỗi khi lưu ghi chú', 'error');
+    }
+  } catch (e) {
+    toast('Lỗi kết nối hệ thống', 'error');
+  }
+}
+
+window.openSopManualModal = openSopManualModal;
+window.saveSopManual = saveSopManual;
+
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 async function sendChat() {

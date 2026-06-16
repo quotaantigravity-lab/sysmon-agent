@@ -340,6 +340,10 @@ class LogItem(BaseModel):
     created_at: Optional[str] = None
     resolved_at: Optional[str] = None
 
+class SopItem(BaseModel):
+    title: str
+    content: str
+
 class ChatMessage(BaseModel):
     role: str
     content: str
@@ -468,6 +472,20 @@ async def delete_log(log_id: str):
 @app.get("/api/sops")
 def get_sops():
     return read_json(SOPS_FILE)
+
+
+@app.post("/api/sops")
+def create_sop(item: SopItem):
+    sops = read_json(SOPS_FILE)
+    sop = {
+        "id": gen_id("sop"),
+        "title": item.title,
+        "filename": "manual_note.txt",
+        "content": item.content
+    }
+    sops.append(sop)
+    write_json(SOPS_FILE, sops)
+    return {"status": "success", "data": sop}
 
 
 @app.delete("/api/sops/{sop_id}")
