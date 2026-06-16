@@ -2,7 +2,7 @@
 SysMon Agent — 24/7 System Monitoring & Operations Assistant
 Automation & Integration track — Claw-a-thon 2026
 
-Improvements over base template:
+Key Features:
 - WebSocket real-time alert streaming
 - Async background health checks with configurable intervals
 - TF-IDF weighted RAG for SOP lookup

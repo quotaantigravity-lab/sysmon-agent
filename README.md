@@ -74,18 +74,14 @@ SysMon Agent là **một trợ lý AI duy nhất** cho toàn bộ ca trực:
 
 ---
 
-## Cải tiến so với phiên bản gốc
+## Các Tính Năng Nổi Bật (Key Features)
 
-| Tiêu chí | Bản gốc | Bản cải tiến |
-|-----------|---------|---------------|
-| Real-time | Polling | WebSocket broadcast |
-| Dashboard | Không có | Metric cards + escalation panel |
-| RAG | Keyword matching đơn giản | TF-IDF weighted scoring |
-| Alert analysis | Basic list | Escalation detection với time window |
-| UI | Glassmorphism cơ bản | Animated indicators, toast notifications, responsive |
-| Theme | Dark only | Dark/Light toggle với CSS variables |
-| Filters | Không có | Multi-filter (type, severity, status) |
-| Architecture | Monolithic | Clean separation: API routes, WS manager, parsers |
+*   **Đồng bộ Thời Gian Thực (Real-time Sync):** Sử dụng kết nối WebSocket hai chiều để truyền nhận cảnh báo Nagios và cập nhật trạng thái trực ca tức thì đến mọi client đang kết nối mà không cần tải lại trang.
+*   **Dashboard Giám Sát Thông Minh:** Tự động tổng hợp và hiển thị trực quan các thẻ số liệu vận hành cốt lõi (Critical, Warning, OK, Sự cố mở, Hosts bị ảnh hưởng) kèm theo danh sách phân tích leo thang sự cố.
+*   **Cơ Chế RAG Chuẩn Xác (TF-IDF RAG):** Tích hợp thuật toán tính điểm TF-IDF để tìm kiếm và trích xuất ngữ cảnh SOP tối ưu từ tài liệu tải lên (`.docx`, `.xlsx`, `.pdf`, `.txt`), tăng trọng số tiêu đề lên 3 lần giúp LLM trả lời hướng xử lý chuẩn xác nhất.
+*   **Phát Hiện Leo Thang Sự Cố (Escalation Detection):** Phân tích dòng thời gian của các cảnh báo để tự động nhận diện và cảnh báo sớm các máy chủ có tần suất lỗi tăng nhanh và leo thang mức độ nghiêm trọng.
+*   **Giao Diện Glassmorphism Dark/Light:** Thiết kế UI hiện đại, hỗ trợ chuyển đổi theme sáng/tối linh hoạt, tối ưu màu sắc chữ tương phản cao và lưu trạng thái giao diện qua `localStorage`.
+*   **Bộ Lọc Đa Năng:** Hỗ trợ lọc nhanh nhật ký ca trực theo loại (Sự cố, Bảo trì, Ghi chú), trạng thái xử lý và mức độ nghiêm trọng để tập trung xử lý vấn đề hiệu quả.
 
 ---
 
