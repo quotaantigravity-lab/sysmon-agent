@@ -4,6 +4,9 @@ AI Agent giám sát hệ thống 24/7, tự động hóa quy trình vận hành 
 
 **Track:** Automation & Integration | **Claw-a-thon 2026**
 
+🌐 **Active Endpoint:** [Trải nghiệm SysMon Agent](https://endpoint-eed7a3b8-53c5-451c-a439-cffc93f3f718.agentbase-runtime.aiplatform.vngcloud.vn/)
+🎥 **Video Demo:** [Sharepoint Demo Video](https://vngms-my.sharepoint.com/:v:/g/personal/duyva_vng_com_vn/IQBOZTxNh3V0RqLP1Vf-b1MuAZu1GXUc9-rHQ1_-nzLYjD4)
+
 ---
 
 ## Bài toán & Giải pháp
