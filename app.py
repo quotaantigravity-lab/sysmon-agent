@@ -671,13 +671,20 @@ def get_dashboard():
     resolved_today = sum(1 for l in logs if l["type"] == "incident" and l["status"] == "resolved"
                          and l.get("resolved_at", "").startswith(now.strftime("%Y-%m-%d")))
 
+    # Find the latest state for each unique host/service
+    latest_alerts = {}
+    for a in alerts:
+        key = (a["host"], a["service"])
+        if key not in latest_alerts:
+            latest_alerts[key] = a
+
     # Alert stats
-    critical_count = sum(1 for a in alerts if a["state"] == "CRITICAL")
-    warning_count = sum(1 for a in alerts if a["state"] == "WARNING")
-    ok_count = sum(1 for a in alerts if a["state"] == "OK")
+    critical_count = sum(1 for a in latest_alerts.values() if a["state"] == "CRITICAL")
+    warning_count = sum(1 for a in latest_alerts.values() if a["state"] == "WARNING")
+    ok_count = sum(1 for a in latest_alerts.values() if a["state"] == "OK")
 
     # Unique hosts with issues
-    affected_hosts = len(set(a["host"] for a in alerts if a["state"] != "OK"))
+    affected_hosts = len(set(a["host"] for a in latest_alerts.values() if a["state"] != "OK"))
 
     # Uptime estimate (mock: based on resolved vs total)
     uptime_pct = round((resolved_today / max(open_incidents + resolved_today, 1)) * 100, 1) if (open_incidents + resolved_today) > 0 else 99.9

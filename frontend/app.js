@@ -441,7 +441,19 @@ function renderAlerts() {
   const filter = document.getElementById('alert-filter').value;
   const limit = parseInt(document.getElementById('alert-limit')?.value || '10');
   
-  let filtered = filter ? alerts.filter(a => a.state === filter) : alerts;
+  // Deduplicate alerts: keep only the latest state for each unique host/service
+  const uniqueAlerts = [];
+  const seen = new Set();
+  
+  for (const a of alerts) {
+    const key = `${a.host}/${a.service}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueAlerts.push(a);
+    }
+  }
+  
+  let filtered = filter ? uniqueAlerts.filter(a => a.state === filter) : uniqueAlerts;
   filtered = filtered.slice(0, limit);
   
   const container = document.getElementById('alerts-list');
