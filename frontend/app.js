@@ -370,6 +370,14 @@ function openLogModal(editId = null) {
       document.getElementById('log-component').value = l.component;
       document.getElementById('log-status').value = l.status;
       document.getElementById('log-content').value = l.content;
+      if (l.created_at) {
+        document.getElementById('log-created-at').value = l.created_at.replace(' ', 'T').slice(0, 16);
+      } else {
+        const now = new Date();
+        const offsetMs = now.getTimezoneOffset() * 60000;
+        const localISOTime = new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
+        document.getElementById('log-created-at').value = localISOTime;
+      }
     }
   } else {
     document.getElementById('log-type').value = 'incident';
@@ -377,6 +385,11 @@ function openLogModal(editId = null) {
     document.getElementById('log-component').value = '';
     document.getElementById('log-status').value = 'resolving';
     document.getElementById('log-content').value = '';
+    
+    const now = new Date();
+    const offsetMs = now.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
+    document.getElementById('log-created-at').value = localISOTime;
   }
 
   document.getElementById('modal-log').classList.add('show');
@@ -386,6 +399,8 @@ function editLog(id) { openLogModal(id); }
 
 async function saveLog() {
   const editId = document.getElementById('log-edit-id').value;
+  const createdAtVal = document.getElementById('log-created-at').value;
+  
   const data = {
     type: document.getElementById('log-type').value,
     severity: document.getElementById('log-severity').value,
@@ -397,6 +412,10 @@ async function saveLog() {
   if (!data.component || !data.content) {
     toast('Vui lòng điền đầy đủ thông tin', 'error');
     return;
+  }
+
+  if (createdAtVal) {
+    data.created_at = createdAtVal.replace('T', ' ') + ':00';
   }
 
   try {
