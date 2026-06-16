@@ -624,6 +624,24 @@ body {
   border-color: var(--accent);
 }
 .form-group textarea { resize: vertical; font-family: inherit; }
+
+.form-group-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.form-group-checkbox input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+.form-group-checkbox label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
 .form-row { display: flex; gap: 12px; }
 .form-row .form-group { flex: 1; }
 
