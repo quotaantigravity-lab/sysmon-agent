@@ -844,6 +844,13 @@ def chat_with_agent(req: ChatRequest):
         return {"response": f"⚠️ Lỗi kết nối: {e}"}
 
 
+# ─── Health Check ──────────────────────────────────────────────────────────────
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat()}
+
+
 # ─── WebSocket ─────────────────────────────────────────────────────────────────
 
 @app.websocket("/ws")
@@ -876,4 +883,4 @@ app.mount("/", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)
