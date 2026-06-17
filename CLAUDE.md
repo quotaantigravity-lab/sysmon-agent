@@ -8,11 +8,11 @@ pip install -r requirements.txt
 
 # Run locally
 python app.py
-# → http://127.0.0.1:8000
+# → http://127.0.0.1:8080
 
 # Docker
 docker build -t sysmon-agent:latest .
-docker run -d -p 8000:8000 --name sysmon-agent sysmon-agent:latest
+docker run -d -p 8080:8080 --name sysmon-agent sysmon-agent:latest
 ```
 
 ## Project Structure
